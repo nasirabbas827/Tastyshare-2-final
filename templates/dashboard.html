@@ -1,0 +1,367 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+
+<!-- Main Dashboard Container -->
+<div class="dashboard-container">
+
+    <div class="card welcome-card">
+        <h2>Welcome back, <span class="username-highlight">{{ username }}</span>!</h2>
+        <p>Ready to discover something delicious?</p>
+        <p><a href="{% url 'recipe_list' %}" class="btn btn-secondary">Manage My Recipes</a></p>
+    </div>
+
+    <!-- Search/Filter Form -->
+    <div class="card filter-card">
+        <form method="get" action="{% url 'dashboard' %}" class="search-form">
+            <input type="text" name="q" placeholder="Search by name or ingredients..." value="{{ request.GET.q }}">
+            
+            <select name="category">
+                <option value="">All Categories</option>
+                {% for cat, label in categories %}
+                    <option value="{{ cat }}" {% if request.GET.category == cat %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            
+            <select name="sort_by">
+                <option value="">Sort By</option>
+                <option value="popularity" {% if request.GET.sort_by == 'popularity' %}selected{% endif %}>Popularity</option>
+                <option value="recent" {% if request.GET.sort_by == 'recent' %}selected{% endif %}>Recent Uploads</option>
+            </select>
+
+            <input type="number" name="cooking_time" placeholder="Max Time (mins)" value="{{ request.GET.cooking_time }}">
+
+            <button type="submit" class="btn btn-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 6px;">
+                    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                </svg>
+                Search Filters
+            </button>
+        </form>
+    </div>
+
+    <h3 class="section-title">Latest & Featured Recipes</h3>
+
+    <div class="recipe-grid">
+        {% for recipe in recipes %}
+        <div class="recipe-card">
+            <a href="{% url 'ratings' recipe.recipe_id %}" class="card-link-wrapper">
+                {% if recipe.image %}
+                    <img src="{{ recipe.image.url }}" alt="{{ recipe.title }}" class="recipe-img" onerror="this.onerror=null; this.src='https://placehold.co/400x200/cccccc/333333?text=No+Image';">
+                {% else %}
+                    <img src="https://placehold.co/400x200/cccccc/333333?text=Recipe+Placeholder" alt="{{ recipe.title }}" class="recipe-img">
+                {% endif %}
+                <div class="recipe-card-content">
+                    <h3 class="recipe-title">{{ recipe.title }}</h3>
+                    <div class="recipe-meta">
+                        <p class="category-tag">{{ recipe.category }}</p>
+                        <p class="time-tag">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16" style="vertical-align: -2px;">
+                                <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/>
+                                <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm0-1A7 7 0 1 1 8 1a7 7 0 0 1 0 14z"/>
+                            </svg>
+                            {{ recipe.cooking_time }} mins
+                        </p>
+                    </div>
+                </div>
+            </a>
+            <!-- Buttons are outside the main link wrapper for easier tapping/clicking -->
+            <div class="card-actions">
+                {% if recipe.recipe_id in favorite_recipes %}
+                    <a href="{% url 'remove_favorite' recipe.recipe_id %}" class="action-btn btn-remove-fav">
+                        &#9733; Remove
+                    </a>
+                {% else %}
+                    <a href="{% url 'add_favorite' recipe.recipe_id %}" class="action-btn btn-add-fav">
+                        &#9734; Add to Favorites
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <p class="empty-state-message">No recipes found matching your criteria. Try adjusting your filters!</p>
+        {% endfor %}
+    </div>
+
+</div> <!-- End of Dashboard Container -->
+
+<style>
+    /* VARIABLES AND BASE STYLES */
+    :root {
+        --color-primary: #E74C3C; /* Tomato Red */
+        --color-secondary: #2ECC71; /* Emerald Green */
+        --color-accent: #3498db; /* Blue */
+        --color-text: #333333;
+        --color-light-bg: #F8F9FA;
+        --color-card-bg: #FFFFFF;
+        --shadow-light: 0 2px 8px rgba(0, 0, 0, 0.05);
+        --shadow-medium: 0 6px 16px rgba(0, 0, 0, 0.1);
+        --border-radius: 12px;
+    }
+
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: var(--color-light-bg);
+        color: var(--color-text);
+        line-height: 1.6;
+    }
+
+    /* GENERAL CARD STYLING */
+    .dashboard-container {
+        padding: 20px 0;
+    }
+
+    .card {
+        background-color: var(--color-card-bg);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-light);
+        padding: 24px;
+        margin-bottom: 24px;
+        transition: box-shadow 0.3s;
+    }
+
+    .card:hover {
+        box-shadow: var(--shadow-medium);
+    }
+
+    .welcome-card {
+        background: linear-gradient(135deg, var(--color-primary) 0%, #D35400 100%);
+        color: white;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        padding: 30px;
+    }
+
+    .welcome-card h2 {
+        color: white;
+        margin-bottom: 8px;
+    }
+
+    .username-highlight {
+        font-weight: 700;
+    }
+
+    .section-title {
+        color: var(--color-primary);
+        margin-top: 30px;
+        margin-bottom: 20px;
+        font-size: 24px;
+        font-weight: 700;
+        border-bottom: 3px solid var(--color-primary);
+        padding-bottom: 8px;
+        display: inline-block;
+    }
+
+    /* BUTTON STYLING */
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        padding: 10px 18px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s;
+        font-size: 14px;
+        cursor: pointer;
+        border: none;
+        user-select: none;
+    }
+
+    .btn-primary {
+        background-color: var(--color-primary);
+        color: white;
+    }
+
+    .btn-secondary {
+        background-color: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+
+    .btn-primary:hover {
+        background-color: #C0392B;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-secondary:hover {
+        background-color: rgba(255, 255, 255, 0.3);
+    }
+
+    /* SEARCH FORM STYLING */
+    .search-form {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr auto; /* Distribute space */
+        gap: 12px;
+        align-items: center;
+    }
+
+    .search-form input[type="text"],
+    .search-form input[type="number"],
+    .search-form select {
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: border-color 0.3s, box-shadow 0.3s;
+        height: 44px; /* Ensure uniform height */
+    }
+
+    .search-form input:focus,
+    .search-form select:focus {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.2);
+        outline: none;
+    }
+
+    /* RECIPE GRID AND CARDS */
+    .recipe-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 24px;
+    }
+
+    .recipe-card {
+        background-color: var(--color-card-bg);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-light);
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        overflow: hidden;
+    }
+
+    .recipe-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    }
+    
+    .card-link-wrapper {
+        text-decoration: none;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+    }
+
+    .recipe-img {
+        width: 100%;
+        height: 180px;
+        object-fit: cover;
+        border-bottom: 1px solid #eee;
+    }
+
+    .recipe-card-content {
+        padding: 16px 20px;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+    }
+
+    .recipe-title {
+        font-size: 18px;
+        margin: 0 0 10px;
+        line-height: 1.3;
+        color: var(--color-text);
+    }
+
+    .recipe-meta {
+        display: flex;
+        gap: 15px;
+        font-size: 13px;
+        margin-bottom: 10px;
+        color: #7f8c8d;
+    }
+
+    .category-tag, .time-tag {
+        font-weight: 500;
+        padding: 3px 8px;
+        border-radius: 4px;
+    }
+
+    .category-tag {
+        background-color: #EAF2F8;
+        color: #3498db;
+    }
+
+    .time-tag {
+        background-color: #FEECEB;
+        color: var(--color-primary);
+    }
+
+    /* ACTION BUTTONS IN CARD */
+    .card-actions {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px 20px;
+        background-color: #F8F9FA;
+        border-top: 1px solid #eee;
+    }
+
+    .action-btn {
+        flex-grow: 1;
+        text-align: center;
+        padding: 8px 10px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: background-color 0.3s;
+    }
+
+    .btn-add-fav {
+        background-color: var(--color-secondary);
+        color: white;
+    }
+
+    .btn-add-fav:hover {
+        background-color: #27AE60;
+    }
+    
+    .btn-remove-fav {
+        background-color: #BDC3C7;
+        color: var(--color-text);
+    }
+
+    .btn-remove-fav:hover {
+        background-color: #95A5A6;
+    }
+
+    /* EMPTY STATE */
+    .empty-state-message {
+        text-align: center;
+        font-style: italic;
+        color: #95A5A6;
+        grid-column: 1 / -1; /* Span across all columns */
+        padding: 40px;
+        border: 2px dashed #ECF0F1;
+        border-radius: var(--border-radius);
+    }
+
+
+    /* MEDIA QUERIES FOR RESPONSIVENESS */
+    @media (max-width: 992px) {
+        .search-form {
+            grid-template-columns: repeat(2, 1fr); /* Two columns on tablet */
+        }
+        .search-form button {
+            grid-column: 1 / -1; /* Button spans full width */
+        }
+    }
+
+    @media (max-width: 576px) {
+        .search-form {
+            grid-template-columns: 1fr; /* Single column on mobile */
+        }
+        .welcome-card {
+            padding: 20px;
+        }
+        .recipe-grid {
+            gap: 15px;
+        }
+        .card-actions {
+            flex-direction: column;
+            gap: 8px;
+        }
+    }
+</style>
+{% endblock %}

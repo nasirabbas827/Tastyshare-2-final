@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="card">
+    <h2>Contact Us</h2>
+    <p>Have a question or feedback? We'd love to hear from you!</p>
+    <form action="#" method="POST">
+        {% csrf_token %}
+        <p>
+            <label for="id_name">Name:</label>
+            <input type="text" name="name" id="id_name" required>
+        </p>
+        <p>
+            <label for="id_email">Email:</label>
+            <input type="email" name="email" id="id_email" required>
+        </p>
+        <p>
+            <label for="id_message">Message:</label>
+            <textarea name="message" id="id_message" rows="5" required></textarea>
+        </p>
+        <button type="submit" class="btn">Send Message</button>
+    </form>
+    <p>You can also reach us at support@tastyshare.com.</p>
+</div>
+{% endblock %}

@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}My Favorites{% endblock %}
+{% block content %}
+<h2>My Favorite Recipes</h2>
+
+<div class="recipe-grid">
+  {% for recipe in favorites %}
+    <div class="recipe-card">
+      {% if recipe.image %}
+        <img src="{{ recipe.image.url }}" alt="{{ recipe.title }}" class="recipe-img">
+      {% endif %}
+      <h3>{{ recipe.title }}</h3>
+      <p><strong>Category:</strong> {{ recipe.category }}</p>
+      <p><strong>Cooking Time:</strong> {{ recipe.cooking_time }} mins</p>
+
+      <a href="{% url 'remove_favorite' recipe.recipe_id%}">Remove from Favorites</a>
+      <a href="{% url 'ratings' recipe.recipe_id %}">View Ratings</a>
+    </div>
+  {% empty %}
+    <p>You don’t have any favorites yet.</p>
+  {% endfor %}
+</div>
+<style>
+    /* General Body and Container Styling */
+
+
+/* Page Header */
+h2 {
+    color: #2c3e50;
+    font-size: 2.5em;
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+/* Recipe Grid and Cards */
+.recipe-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 24px;
+}
+
+.recipe-card {
+    background-color: #ffffff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    text-align: center;
+}
+
+.recipe-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.recipe-img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-bottom: 1px solid #eee;
+}
+
+.recipe-card h3 {
+    font-size: 1.5em;
+    margin: 15px 0 10px;
+    color: #34495e;
+}
+
+.recipe-card p {
+    margin: 0 0 8px;
+    font-size: 0.95em;
+    color: #666;
+}
+
+/* Action Links */
+.recipe-card a {
+    display: block;
+    margin: 10px 15px;
+    padding: 10px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: background-color 0.3s;
+}
+
+.recipe-card a[href*="remove_favorite"] {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.recipe-card a[href*="remove_favorite"]:hover {
+    background-color: #c0392b;
+}
+
+.recipe-card a[href*="ratings"] {
+    background-color: #3498db;
+    color: white;
+}
+
+.recipe-card a[href*="ratings"]:hover {
+    background-color: #2980b9;
+}
+
+/* Empty State */
+.recipe-grid p {
+    text-align: center;
+    font-style: italic;
+    color: #888;
+    grid-column: 1 / -1; /* Span across all columns */
+}
+</style>
+{% endblock %}

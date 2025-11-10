@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block title %}My Recipes{% endblock %}
+{% block content %}
+<h2>My Recipes</h2>
+<h4><a href="{% url 'recipe_create' %}">Add New Recipe</a></h4>
+
+<div class="recipe-grid">
+  {% for recipe in recipes %}
+    <div class="recipe-card">
+      {% if recipe.image %}
+        <img src="{{ recipe.image.url }}" alt="{{ recipe.title }}" class="recipe-img">
+      {% endif %}
+      <h3>{{ recipe.title }}</h3>
+      <p><strong>Category:</strong> {{ recipe.category }}</p>
+      <p><strong>Cooking Time:</strong> {{ recipe.cooking_time }} mins</p>
+
+      <a href="{% url 'recipe_update' recipe.recipe_id %}">Edit</a> |
+      <form method="POST" action="{% url 'recipe_delete' recipe.recipe_id %}" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit">Delete</button>
+      </form>
+    </div>
+  {% endfor %}
+</div>
+<style>
+    /* General Body and Container Styling */
+
+
+/* Page Header and Add Button */
+h2 {
+    color: #2c3e50;
+    font-size: 2.5em;
+    margin-bottom: 10px;
+}
+
+a[href*="recipe_create"] {
+    display: inline-block;
+    background-color: #2ecc71;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    margin-bottom: 25px;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+a[href*="recipe_create"]:hover {
+    background-color: #27ae60;
+    transform: translateY(-2px);
+}
+h4{
+    text-align: right;
+}
+
+/* Recipe Grid and Cards */
+.recipe-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 24px;
+}
+
+.recipe-card {
+    background-color: #ffffff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    text-align: center; /* Center content horizontally */
+}
+
+.recipe-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.recipe-img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-bottom: 1px solid #eee;
+}
+
+.recipe-card h3 {
+    font-size: 1.5em;
+    margin: 15px 0 10px;
+    color: #34495e;
+}
+
+.recipe-card p {
+    margin: 0 0 8px;
+    font-size: 0.95em;
+    color: #666;
+}
+
+/* Action Links and Buttons */
+.recipe-card a {
+    color: #3498db;
+    text-decoration: none;
+    font-weight: 600;
+    padding: 5px 0;
+    transition: color 0.3s;
+}
+
+.recipe-card a:hover {
+    color: #2980b9;
+}
+
+.recipe-card form {
+    display: inline-block;
+    margin-left: 10px;
+}
+
+.recipe-card button {
+    background: none;
+    color: #e74c3c;
+    border: none;
+    padding: 0;
+    font-size: 1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.recipe-card button:hover {
+    color: #c0392b;
+}
+</style>
+{% endblock %}

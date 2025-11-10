@@ -1,0 +1,361 @@
+{% extends "base.html" %}
+{% block title %}Ratings for {{ recipe.title }}{% endblock %}
+
+{% block content %}
+<div class="recipe-container">
+
+    <!-- Header Section -->
+    <header class="recipe-header">
+        <a href="{% url 'dashboard' %}" class="back-link">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
+            </svg>
+            Back to Dashboard
+        </a>
+        <h1>{{ recipe.title }}</h1>
+        <div class="recipe-meta-data">
+            <span class="meta-tag category-tag">{{ recipe.category }}</span>
+            <span class="meta-tag time-tag">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/>
+                    <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm0-1A7 7 0 1 1 8 1a7 7 0 0 1 0 14z"/>
+                </svg>
+                {{ recipe.cooking_time }} mins
+            </span>
+        </div>
+    </header>
+
+    <!-- Image and Main Details -->
+    <div class="main-details-grid">
+        {% if recipe.image %}
+          <div class="recipe-image-wrapper">
+              <img src="{{ recipe.image.url }}" alt="{{ recipe.title }}" class="recipe-img" onerror="this.onerror=null; this.src='https://placehold.co/400x300/cccccc/333333?text=No+Image';">
+          </div>
+        {% endif %}
+
+        <div class="recipe-content-wrapper">
+            
+            <section class="details-section">
+                <h3>Ingredients</h3>
+                <!-- Used a div with pre-line CSS to format the linebreaks output cleanly -->
+                <div class="content-list">{{ recipe.ingredients|linebreaks }}</div>
+            </section>
+
+            <section class="details-section">
+                <h3>Preparation Steps</h3>
+                <div class="content-list">{{ recipe.preparation_steps|linebreaks }}</div>
+            </section>
+
+        </div>
+    </div>
+    
+    <!-- Ratings & Reviews Section -->
+    <section class="ratings-section">
+        <h2 class="section-title">Ratings & Reviews</h2>
+        
+        <div class="reviews-list">
+            {% for r in ratings %}
+                <div class="review-card">
+                    <div class="review-header">
+                        <span class="reviewer-username">{{ r.user.username }}</span>
+                        <span class="review-rating">
+                            <!-- Simple star rating visualization -->
+                            {% for i in "12345"|make_list %}
+                                <span class="star {% if forloop.counter <= r.rating %}filled{% endif %}">&#9733;</span>
+                            {% endfor %}
+                            <span class="rating-text">({{ r.rating }}/5)</span>
+                        </span>
+                    </div>
+                    {% if r.review %}
+                        <p class="review-text">{{ r.review|linebreaks }}</p>
+                    {% endif %}
+                </div>
+            {% empty %}
+                <p class="empty-state-message">Be the first to rate this recipe!</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- Leave/Edit Rating Form -->
+    <section class="rating-form-section">
+        <h2 class="section-title">{% if user_rating %}Edit Your Rating{% else %}Leave a Rating{% endif %}</h2>
+        <form method="POST" class="rating-form">
+            {% csrf_token %}
+            <div class="form-fields">
+                {{ form.as_p }}
+            </div>
+            <button type="submit" class="btn btn-submit">Submit Rating</button>
+        </form>
+    </section>
+
+</div>
+
+<style>
+    /* VARIABLES AND BASE STYLES */
+    :root {
+        --color-primary: #E74C3C; /* Tomato Red */
+        --color-secondary: #2ECC71; /* Emerald Green */
+        --color-accent: #3498db; /* Blue */
+        --color-text: #333333;
+        --color-light-bg: #F8F9FA;
+        --color-card-bg: #FFFFFF;
+        --shadow-light: 0 4px 12px rgba(0, 0, 0, 0.08);
+        --border-radius: 12px;
+    }
+
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: var(--color-light-bg);
+        color: var(--color-text);
+        line-height: 1.6;
+    }
+
+    .recipe-container {
+        background-color: var(--color-card-bg);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-light);
+        padding: 30px;
+        max-width: 900px;
+        margin: 20px auto;
+    }
+
+    /* HEADER & METADATA */
+    .recipe-header {
+        border-bottom: 2px solid #ecf0f1;
+        padding-bottom: 15px;
+        margin-bottom: 25px;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        color: var(--color-accent);
+        text-decoration: none;
+        font-weight: 500;
+        margin-bottom: 15px;
+        transition: color 0.2s;
+    }
+    .back-link svg {
+        margin-right: 5px;
+    }
+    .back-link:hover {
+        color: var(--color-primary);
+    }
+
+    h1 {
+        color: var(--color-primary);
+        font-size: 2.5em;
+        margin: 0 0 10px 0;
+        font-weight: 700;
+    }
+
+    .recipe-meta-data {
+        display: flex;
+        gap: 15px;
+    }
+
+    .meta-tag {
+        font-weight: 600;
+        padding: 5px 10px;
+        border-radius: 6px;
+        font-size: 0.9em;
+    }
+
+    .category-tag {
+        background-color: #EAF2F8;
+        color: var(--color-accent);
+    }
+
+    .time-tag {
+        background-color: #FEECEB;
+        color: var(--color-primary);
+    }
+    .time-tag svg {
+        vertical-align: -2px;
+    }
+
+    /* MAIN DETAILS GRID */
+    .main-details-grid {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 30px;
+        margin-bottom: 40px;
+    }
+
+    .recipe-image-wrapper {
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        align-self: start;
+    }
+
+    .recipe-img {
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+
+    .details-section h3 {
+        color: var(--color-text);
+        font-size: 1.3em;
+        margin-bottom: 10px;
+        padding-bottom: 5px;
+        border-bottom: 1px dashed #e0e0e0;
+        font-weight: 600;
+    }
+
+    /* Use white-space pre-line to better handle the linebreaks filter output */
+    .content-list {
+        white-space: pre-line;
+        color: #555;
+        font-size: 1em;
+    }
+
+    /* RATINGS & REVIEWS */
+    .section-title {
+        color: var(--color-primary);
+        font-size: 1.8em;
+        margin-top: 30px;
+        margin-bottom: 20px;
+        padding-bottom: 5px;
+        border-bottom: 3px solid var(--color-primary);
+        display: inline-block;
+        font-weight: 700;
+    }
+
+    .reviews-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        padding: 0;
+        list-style: none; /* Inherited from original */
+    }
+
+    .review-card {
+        background-color: #fcfcfc;
+        border: 1px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 15px 20px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .review-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+        padding-bottom: 5px;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .reviewer-username {
+        font-weight: 700;
+        color: var(--color-accent);
+    }
+
+    .review-rating {
+        font-size: 1.2em;
+        color: orange; /* Star color */
+    }
+
+    .star {
+        margin: 0 -2px;
+        opacity: 0.3;
+    }
+    .star.filled {
+        opacity: 1;
+    }
+    .rating-text {
+        font-size: 0.7em;
+        font-weight: 600;
+        color: #777;
+        margin-left: 5px;
+    }
+
+    .review-text {
+        margin: 0;
+        color: #555;
+        white-space: pre-line;
+    }
+
+    .empty-state-message {
+        text-align: center;
+        font-style: italic;
+        color: #95A5A6;
+        padding: 20px;
+        border: 1px dashed #ECF0F1;
+        border-radius: 8px;
+    }
+
+    /* RATING FORM STYLING */
+    .rating-form {
+        background-color: #f9f9f9;
+        padding: 25px;
+        border-radius: 12px;
+        border: 1px solid #e0e0e0;
+    }
+
+    /* Target Django form structure (p > label, input/textarea) */
+    .rating-form p {
+        margin-bottom: 15px;
+    }
+
+    .rating-form label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 600;
+        color: var(--color-text);
+        font-size: 0.95em;
+    }
+
+    .rating-form input[type="number"],
+    .rating-form textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        font-size: 1em;
+        box-sizing: border-box;
+        transition: border-color 0.2s;
+    }
+
+    .rating-form input:focus,
+    .rating-form textarea:focus {
+        border-color: var(--color-primary);
+        outline: none;
+    }
+
+    .btn-submit {
+        background-color: var(--color-secondary);
+        color: white;
+        padding: 12px 25px;
+        border: none;
+        border-radius: 8px;
+        font-size: 1em;
+        cursor: pointer;
+        font-weight: 600;
+        transition: background-color 0.3s, transform 0.2s;
+    }
+
+    .btn-submit:hover {
+        background-color: #27ae60;
+        transform: translateY(-2px);
+    }
+    
+    /* MEDIA QUERIES */
+    @media (max-width: 768px) {
+        .recipe-container {
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 2em;
+        }
+
+        .main-details-grid {
+            grid-template-columns: 1fr; /* Stack on mobile */
+            gap: 20px;
+        }
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,290 @@
+{% extends "base.html" %}
+{% block title %}Welcome to RecipeHub{% endblock %}
+
+{% block content %}
+
+<section class="hero">
+    <div class="hero-content">
+        <h1>Discover Delicious Recipes 👨‍🍳</h1>
+        <p class="subtitle">Search, filter, and explore recipes from our culinary community</p>
+        <form method="get" action="{% url 'index' %}" class="hero-search">
+            <input type="text" name="q" placeholder="Search recipes..." value="{{ request_get.q|default:'' }}" class="search-input">
+            <select name="category" class="search-select">
+                <option value="">All Categories</option>
+                {% for cat, label in categories %}
+                    <option value="{{ cat }}" {% if request_get.category == cat %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <input type="number" name="cooking_time" placeholder="Max Time (mins)" value="{{ request_get.cooking_time|default:'' }}" class="search-input">
+            <select name="sort_by" class="search-select">
+                <option value="">Sort By</option>
+                <option value="popularity" {% if request_get.sort_by == 'popularity' %}selected{% endif %}>Popularity</option>
+                <option value="recent" {% if request_get.sort_by == 'recent' %}selected{% endif %}>Recent Uploads</option>
+            </select>
+            <button type="submit" class="btn btn-primary search-button">Search</button>
+        </form>
+    </div>
+</section>
+
+
+
+<section class="recipe-section container">
+    <h2>Explore All Recipes 🌶️</h2>
+    <div class="recipe-grid">
+        {% for recipe in recipes %}
+        <div class="recipe-card">
+            {% if recipe.image %}
+                <img src="{{ recipe.image.url }}" alt="{{ recipe.title }}" class="recipe-img">
+            {% else %}
+                <div class="recipe-img-placeholder">No Image Available</div>
+            {% endif %}
+            <div class="recipe-card-content">
+                <h3>{{ recipe.title }}</h3>
+                <div class="recipe-meta">
+                    <p><strong>Category:</strong> <span>{{ recipe.category|default:"General" }}</span></p>
+                    <p><strong>Time:</strong> <span>{{ recipe.cooking_time|default:"N/A" }} mins</span></p>
+                </div>
+                <div class="card-actions">
+                    <a href="{% url 'ratings' recipe.recipe_id %}" class="btn btn-secondary view-ratings">Ratings</a>
+                    {% if recipe.recipe_id in favorite_recipes %}
+                        <a href="{% url 'remove_favorite' recipe.recipe_id %}" class="btn btn-danger">Remove Fav.</a>
+                    {% else %}
+                        <a href="{% url 'add_favorite' recipe.recipe_id %}" class="btn btn-success">⭐ Add to Favs</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+            <p class="no-recipes-found">No recipes found matching your criteria. Try a broader search!</p>
+        {% endfor %}
+    </div>
+</section>
+
+
+
+<style>
+/* Global Styling & Utilities */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f7f6; /* Light, subtle background */
+    color: #333;
+}
+.container {
+    max-width: 1200px;
+    margin: 20px;
+    padding: 0 20px;
+
+}
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* --- Hero Section --- */
+.hero {
+    background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://picsum.photos/1600/600?random=1') center/cover no-repeat; /* Updated BG for better contrast */
+    padding: 120px 20px;
+    text-align: center;
+    color: #fff;
+    border-radius: 15px; /* Softer rounded corners */
+    margin-bottom: 50px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+.hero h1 {
+    font-size: 3.5em;
+    margin-bottom: 10px;
+    font-weight: 700;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+.subtitle {
+    font-size: 1.4em;
+    margin-bottom: 30px;
+    font-weight: 300;
+}
+.hero-search {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    max-width: 900px;
+    margin: 0 auto;
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+.search-input, .search-select {
+    padding: 12px 18px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+    flex-grow: 1;
+    min-width: 150px;
+    transition: border-color 0.3s;
+}
+.search-input:focus, .search-select:focus {
+    border-color: #ff6b6b; /* Accent color on focus */
+    outline: none;
+}
+.search-button {
+    flex-grow: 0;
+    min-width: 120px;
+}
+
+/* --- Recipe Grid and Cards --- */
+.recipe-section {
+    padding: 20px 0;
+}
+.recipe-section h2 {
+    text-align: center;
+    margin-bottom: 40px;
+    color: #ff6b6b; /* Main accent color */
+    font-size: 2.5em;
+    font-weight: 600;
+}
+.recipe-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Better responsiveness */
+    gap: 30px;
+}
+.recipe-card {
+    background-color: #ffffff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.4s;
+}
+.recipe-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.15);
+}
+.recipe-img, .recipe-img-placeholder {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    border-bottom: 1px solid #eee;
+    background-color: #e8e8e8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    font-style: italic;
+}
+.recipe-card-content {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+.recipe-card-content h3 {
+    font-size: 22px;
+    margin-bottom: 12px;
+    color: #34495e;
+    font-weight: 700;
+}
+.recipe-meta {
+    margin-bottom: 15px;
+    border-left: 3px solid #ff6b6b;
+    padding-left: 10px;
+}
+.recipe-meta p {
+    margin: 5px 0;
+    font-size: 15px;
+    color: #555;
+}
+.recipe-meta span {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+/* --- Buttons --- */
+.card-actions {
+    margin-top: auto;
+    padding-top: 15px;
+    border-top: 1px dashed #eee;
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+.btn {
+    padding: 10px 15px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+.btn-primary, .search-button { 
+    background-color: #ff6b6b; 
+    color: white; 
+}
+.btn-primary:hover, .search-button:hover { 
+    background-color: #e55a5a; 
+}
+.btn-success { 
+    background-color: #2ecc71; 
+    color: white; 
+}
+.btn-success:hover { 
+    background-color: #27ae60; 
+}
+.btn-danger {
+    background-color: #e74c3c;
+    color: white;
+}
+.btn-danger:hover {
+    background-color: #c0392b;
+}
+.btn-secondary {
+    background-color: #bdc3c7;
+    color: #333;
+}
+.btn-secondary:hover {
+    background-color: #95a5a6;
+    color: white;
+}
+.no-recipes-found {
+    grid-column: 1 / -1; /* Center message across the whole grid */
+    text-align: center;
+    padding: 40px;
+    font-size: 1.2em;
+    color: #e74c3c;
+    font-weight: 500;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .hero {
+        padding: 80px 10px;
+    }
+    .hero h1 {
+        font-size: 2.5em;
+    }
+    .subtitle {
+        font-size: 1.1em;
+    }
+    .hero-search {
+        flex-direction: column;
+    }
+    .search-input, .search-select, .search-button {
+        width: 100%;
+        min-width: unset;
+    }
+    .recipe-grid {
+        grid-template-columns: 1fr;
+    }
+    .card-actions {
+        flex-direction: column;
+    }
+    .btn {
+        width: 100%;
+        text-align: center;
+    }
+}
+</style>
+
+{% endblock %}
